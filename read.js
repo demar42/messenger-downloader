@@ -64,31 +64,47 @@ login({
             api.getThreadHistory(threadID, firstmsg, lastmsg, threadTimeStamps[threadPosition], (err, messages) => {
                 if (err) console.log(err);
                 var endLength = messages.length - 1;
-                addMessages(messages, 0, endLength, "");
+                addMessages(messages, 0, endLength, "", {});
             });
         });
     }
 
-    function addMessages(messageArray, currentVal, endVal, text) {
+    function addMessages(messageArray, currentVal, endVal, text, nameDict) {
 
         console.log(currentVal);
         var sender = messageArray[currentVal].senderID.slice(5);
-        api.getUserInfo(sender, (err, person) => {
-            if (err) return console.log(err);
-
+        if (nameDict[sender] != undefined) {
+            //The user has already been found - don't waste time searching again
             var body = messageArray[currentVal].body;
-            var name = person[sender].firstName;
+            var name = nameDict[sender];
             text += name + ": " + body + "\n--------------------------------------------\n";
 
-            if (currentVal == endVal) {
-                console.log(text);
-                fs.writeFile('messages.txt', text, err => {
-                    console.log('All done!');
-                    process.exit(0);
-                });
-            } else if (currentVal < endVal) {
-                addMessages(messageArray, currentVal + 1, endVal, text);
-            }
-        });
+            restartOrEnd(currentVal, endval)
+
+        } else {
+            api.getUserInfo(sender, (err, person) => {
+                if (err) return console.log(err);
+
+                var body = messageArray[currentVal].body;
+                var name = person[sender].firstName;
+                text += name + ": " + body + "\n--------------------------------------------\n";
+
+                nameDict[sender] = name;
+
+                restartOrEnd(currentVal, endVal);
+            });
+        }
+    }
+
+    function restartOrEnd(currentVal, endVal) {
+        if (currentVal == endVal) {
+            console.log(text);
+            fs.writeFile('messages.txt', text, err => {
+                console.log('All done!');
+                process.exit(0);
+            });
+        } else if (currentVal < endVal) {
+            addMessages(messageArray, currentVal + 1, endVal, text, nameDict);
+        }
     }
 });
