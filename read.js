@@ -77,7 +77,7 @@ login({
             //The user has already been found - don't waste time searching again
             var body = messageArray[currentVal].body;
             var name = nameDict[sender];
-            text += name + ": " + body + "\n--------------------------------------------\n";
+            text += name + ": " + body + "\r\n--------------------------------------------\r\n";
 
             restartOrEnd(currentVal, endval)
 
@@ -87,7 +87,7 @@ login({
 
                 var body = messageArray[currentVal].body;
                 var name = person[sender].firstName;
-                text += name + ": " + body + "\n--------------------------------------------\n";
+                text += name + ": " + body + "\r\n--------------------------------------------\r\n";
 
                 nameDict[sender] = name;
 
