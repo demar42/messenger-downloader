@@ -62,33 +62,33 @@ login({
             var firstmsg = lastmsg - reverseAmount;
 
             api.getThreadHistory(threadID, firstmsg, lastmsg, threadTimeStamps[threadPosition], (err, messages) => {
-                var dump = '';
+                if (err) console.log(err);
                 var endLength = messages.length - 1;
-                console.log(endLength);
-                var i = 0
-                for (var loop = 0; loop < messages.length; loop++) {
-                    var name;
-                    var sender = messages[loop].senderID.slice(5);
-                    console.log(sender);
-                    api.getUserInfo(sender, (err, person) => {
-                        if (err) return console.log("error");
-                        var body = messages[i].body;
-                        console.log(messages[i].senderID);
-                        console.log(Object.keys(person));
-                        name = person[messages[i].senderID.slice(5)].firstName;
-                        dump += name + ": \n";
-                        dump += body + "\n----------------------------\n\n";
-                        if (i == endLength) {
-                            console.log(dump);
-                            fs.writeFile('messages.txt', dump, err => {
-                                console.log('All done!');
-                                process.exit(0);
-                            });
-                        }
-                        i++;
-                    });
-                }
+                addMessages(messages, 0, endLength, "");
             });
+        });
+    }
+
+    function addMessages(messageArray, currentVal, endVal, text) {
+
+        console.log(currentVal);
+        var sender = messageArray[currentVal].senderID.slice(5);
+        api.getUserInfo(sender, (err, person) => {
+            if (err) return console.log(err);
+
+            var body = messageArray[currentVal].body;
+            var name = person[sender].firstName;
+            text += name + ": " + body + "\n--------------------------------------------\n";
+
+            if (currentVal == endVal) {
+                console.log(text);
+                fs.writeFile('messages.txt', text, err => {
+                    console.log('All done!');
+                    process.exit(0);
+                });
+            } else if (currentVal < endVal) {
+                addMessages(messageArray, currentVal + 1, endVal, text);
+            }
         });
     }
 });
